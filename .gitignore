@@ -1,9 +1,14 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
+.DS_Store
 
+data/
 outputs/
+runs/
+checkpoints/
+deliverables/
 .ipynb_checkpoints/
-__pycache__/
 *.pt
 *.pth

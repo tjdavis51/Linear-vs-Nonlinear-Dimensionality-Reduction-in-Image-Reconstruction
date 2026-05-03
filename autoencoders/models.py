@@ -5,20 +5,24 @@ import torch.nn as nn
 
 
 class FullyConnectedAutoencoder(nn.Module):
-    """Small fully connected autoencoder for 28x28 grayscale images."""
+    """Fully connected autoencoder for 28x28 grayscale images."""
 
     def __init__(self, latent_dim: int) -> None:
         super().__init__()
         self.encoder = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(28 * 28, 128),
+            nn.Linear(28 * 28, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, latent_dim),
         )
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, 128),
             nn.ReLU(),
-            nn.Linear(128, 28 * 28),
+            nn.Linear(128, 256),
+            nn.ReLU(),
+            nn.Linear(256, 28 * 28),
             nn.Sigmoid(),
         )
 
