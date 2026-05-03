@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 
 outputs/
+.ipynb_checkpoints/
+__pycache__/
+*.pt
+*.pth

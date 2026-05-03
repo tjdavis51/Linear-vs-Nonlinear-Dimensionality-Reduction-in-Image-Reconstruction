@@ -1,0 +1,215 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+
+from torch.utils.data import Dataset
+from torchvision import datasets, transforms
+from torchvision.transforms import InterpolationMode
+
+
+@dataclass(frozen=True)
+class DatasetSpec:
+    """Static dataset metadata used to build compatible training adapters."""
+
+    name: str
+    aliases: tuple[str, ...]
+    dataset_class: type[datasets.VisionDataset] | None
+    num_classes: int
+    native_image_size: int
+    native_channels: int
+    supports_download: bool = True
+
+
+DATASET_SPECS: dict[str, DatasetSpec] = {
+    "mnist": DatasetSpec(
+        name="mnist",
+        aliases=("mnist",),
+        dataset_class=datasets.MNIST,
+        num_classes=10,
+        native_image_size=28,
+        native_channels=1,
+    ),
+    "cifar10": DatasetSpec(
+        name="cifar10",
+        aliases=("cifar10", "cifar", "cifar-10", "cifar_10"),
+        dataset_class=datasets.CIFAR10,
+        num_classes=10,
+        native_image_size=32,
+        native_channels=3,
+    ),
+}
+
+DATASET_ALIASES: dict[str, str] = {
+    alias: spec.name
+    for spec in DATASET_SPECS.values()
+    for alias in spec.aliases
+}
+SUPPORTED_DIFFUSION_DATASET_CHOICES: tuple[str, ...] = tuple(DATASET_ALIASES)
+SUPPORTED_PREPROCESSING_PROTOCOLS: tuple[str, ...] = ("default",)
+
+
+@dataclass(frozen=True)
+class ResolvedDiffusionDataConfig:
+    """Resolved image-shape metadata for the active diffusion run."""
+
+    image_size: int
+    channels: int
+    num_classes: int
+
+
+def normalize_dataset_name(dataset_name: str) -> str:
+    """Resolve any supported alias into the repo's canonical dataset key."""
+
+    normalized = dataset_name.lower()
+    if normalized not in DATASET_ALIASES:
+        raise ValueError(f"Unsupported dataset: {dataset_name}")
+    return DATASET_ALIASES[normalized]
+
+
+def resolve_dataset_spec(dataset_name: str) -> DatasetSpec:
+    """Return the canonical dataset metadata for a user-provided name."""
+
+    return DATASET_SPECS[normalize_dataset_name(dataset_name)]
+
+
+def resolve_diffusion_data_config(
+    dataset_name: str,
+    *,
+    diffusion_backbone: str,
+    image_size: int | None,
+    channels: int | None,
+) -> ResolvedDiffusionDataConfig:
+    """Resolve the diffusion image shape for a dataset/backbone combination."""
+
+    spec = resolve_dataset_spec(dataset_name)
+    resolved_image_size = image_size
+    if resolved_image_size is None:
+        resolved_image_size = 64 if diffusion_backbone == "adm" else spec.native_image_size
+
+    resolved_channels = channels
+    if resolved_channels is None:
+        resolved_channels = 3 if diffusion_backbone == "adm" else spec.native_channels
+
+    if resolved_image_size < 8:
+        raise ValueError("Diffusion image_size must be at least 8.")
+    if resolved_channels < 1:
+        raise ValueError("Diffusion channels must be at least 1.")
+
+    return ResolvedDiffusionDataConfig(
+        image_size=resolved_image_size,
+        channels=resolved_channels,
+        num_classes=spec.num_classes,
+    )
+
+
+def build_diffusion_transform(
+    dataset_name: str,
+    *,
+    train: bool,
+    image_size: int,
+    channels: int,
+    preprocessing_protocol: str = "default",
+) -> transforms.Compose:
+    """Build the diffusion preprocessing pipeline for a dataset."""
+
+    spec = resolve_dataset_spec(dataset_name)
+    steps: list[transforms.Transform] = []
+    if preprocessing_protocol not in SUPPORTED_PREPROCESSING_PROTOCOLS:
+        raise ValueError(
+            f"Unsupported preprocessing protocol: {preprocessing_protocol}. "
+            f"Expected one of {SUPPORTED_PREPROCESSING_PROTOCOLS}."
+        )
+
+    steps.append(
+        transforms.Resize(
+            (image_size, image_size),
+            interpolation=InterpolationMode.BILINEAR,
+        )
+    )
+    if train and spec.name == "cifar10":
+        steps.append(transforms.RandomHorizontalFlip())
+
+    if spec.native_channels != channels:
+        steps.append(transforms.Grayscale(num_output_channels=channels))
+
+    steps.append(transforms.ToTensor())
+    mean = tuple(0.5 for _ in range(channels))
+    std = tuple(0.5 for _ in range(channels))
+    steps.append(transforms.Normalize(mean, std))
+    return transforms.Compose(steps)
+
+
+def describe_diffusion_preprocessing(
+    dataset_name: str,
+    *,
+    image_size: int,
+    channels: int,
+    preprocessing_protocol: str,
+) -> dict[str, object]:
+    """Return an explicit, serializable description of the diffusion transforms."""
+
+    spec = resolve_dataset_spec(dataset_name)
+    base_description: dict[str, object] = {
+        "dataset": spec.name,
+        "protocol": preprocessing_protocol,
+        "image_size": image_size,
+        "channels": channels,
+        "channel_conversion": (
+            f"{spec.native_channels}->" f"{channels}"
+            if spec.native_channels != channels
+            else f"{channels}->" f"{channels}"
+        ),
+        "normalization": {
+            "range_in": "[0, 1]",
+            "range_out": "[-1, 1]",
+            "mean": [0.5 for _ in range(channels)],
+            "std": [0.5 for _ in range(channels)],
+        },
+    }
+
+    train_ops = [f"resize({image_size}x{image_size})"]
+    if spec.name == "cifar10":
+        train_ops.append("random_horizontal_flip")
+    eval_ops = [f"resize({image_size}x{image_size})"]
+    base_description["deterministic_train_preprocessing"] = False
+
+    base_description["train_ops"] = train_ops
+    base_description["eval_ops"] = eval_ops
+    return base_description
+
+
+def build_diffusion_dataset(
+    dataset_name: str,
+    *,
+    root: Path,
+    train: bool,
+    image_size: int,
+    channels: int,
+    preprocessing_protocol: str = "default",
+    download: bool = False,
+) -> Dataset:
+    """Instantiate a dataset with the diffusion transform adapter."""
+
+    spec = resolve_dataset_spec(dataset_name)
+    dataset_root = Path(root)
+    transform = build_diffusion_transform(
+        spec.name,
+        train=train,
+        image_size=image_size,
+        channels=channels,
+        preprocessing_protocol=preprocessing_protocol,
+    )
+
+    if spec.dataset_class is None:  # pragma: no cover - guarded by dataset registration.
+        raise ValueError(f"No dataset class registered for {spec.name}.")
+
+    if download and spec.supports_download:
+        dataset_root.mkdir(parents=True, exist_ok=True)
+
+    return spec.dataset_class(
+        root=str(dataset_root),
+        train=train,
+        download=download,
+        transform=transform,
+    )
