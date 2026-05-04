@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Linear vs Nonlinear Dimensionality Reduction for Image Reconstruction</title>
+    <meta
+      name="description"
+      content="Final CS 472 project site comparing PCA, autoencoders, and a diffusion bridge for image reconstruction on MNIST and Fashion-MNIST."
+    >
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header" aria-label="Site navigation">
+      <a class="brand" href="#top" aria-label="Go to top">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Image Reconstruction Study</span>
+      </a>
+      <nav class="nav-links" aria-label="Main sections">
+        <a href="#question">Question</a>
+        <a href="#results">Results</a>
+        <a href="#visuals">Visuals</a>
+        <a href="#diffusion">Diffusion</a>
+        <a href="#conclusion">Conclusion</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-media" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">CS 472 Final Project - Taylor Davis and Kaleb Coleman</p>
+          <h1 id="hero-title">Linear vs Nonlinear Dimensionality Reduction for Image Reconstruction</h1>
+          <p class="hero-copy">
+            We compared PCA and fully connected autoencoders under the same latent bottlenecks on MNIST and Fashion-MNIST, then placed diffusion beside the study as a denoising-oriented extension.
+          </p>
+          <div class="hero-actions" aria-label="Primary links">
+            <a class="action primary" href="#results">View findings</a>
+            <a class="action secondary" href="472%20Final%20Presentation.pdf">Open final deck</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="question" class="section question-section" aria-labelledby="question-title">
+        <div class="section-kicker">Research question</div>
+        <div class="two-column">
+          <div>
+            <h2 id="question-title">Which method reconstructs images better under equal compression?</h2>
+            <p>
+              High-dimensional images are expensive to store and process. Dimensionality reduction compresses each image into a smaller latent representation, then reconstructs the original image from that code.
+            </p>
+          </div>
+          <div class="process-line" aria-label="Compression pipeline">
+            <div>
+              <strong>Image</strong>
+              <span>28 x 28 grayscale input</span>
+            </div>
+            <div>
+              <strong>Latent code</strong>
+              <span>k dimensions</span>
+            </div>
+            <div>
+              <strong>Reconstruction</strong>
+              <span>Recovered pixel image</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section method-band" aria-labelledby="method-title">
+        <div class="section-kicker">Methods</div>
+        <h2 id="method-title">Same reconstruction task, different assumptions.</h2>
+        <div class="method-grid">
+          <article class="method">
+            <span class="method-index">01</span>
+            <h3>PCA</h3>
+            <p>Classical linear projection. It is stable, interpretable, requires no gradient training, and stores far fewer parameters.</p>
+          </article>
+          <article class="method">
+            <span class="method-index">02</span>
+            <h3>Autoencoder</h3>
+            <p>Nonlinear encoder and decoder trained to compress each 28 x 28 image into a learned latent representation and reconstruct it.</p>
+          </article>
+          <article class="method">
+            <span class="method-index">03</span>
+            <h3>Diffusion</h3>
+            <p>Bonus model. It learns to reverse noise corruption, so it is reported as denoising context rather than a latent-compression winner.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="results" class="section results-section" aria-labelledby="results-title">
+        <div class="section-kicker">Headline results</div>
+        <h2 id="results-title">Autoencoders win early. PCA wins the efficiency argument.</h2>
+        <div class="highlight-grid">
+          <article class="highlight">
+            <span class="metric">4 / 5</span>
+            <h3>AE PSNR wins per dataset</h3>
+            <p>On both MNIST and Fashion-MNIST, AE had higher PSNR at latent sizes 2, 8, 16, and 32.</p>
+          </article>
+          <article class="highlight">
+            <span class="metric">64</span>
+            <h3>PCA comeback point</h3>
+            <p>PCA overtook AE at latent size 64 on both datasets, showing the nonlinear advantage is conditional.</p>
+          </article>
+          <article class="highlight">
+            <span class="metric">199.4x</span>
+            <h3>Largest AE parameter cost</h3>
+            <p>At latent size 2, AE stored about 199.4 times as many parameters as PCA at the same compression ratio.</p>
+          </article>
+          <article class="highlight">
+            <span class="metric">18.931 dB</span>
+            <h3>Diffusion bridge PSNR</h3>
+            <p>The diffusion result measures denoising reconstruction from noisy inputs, not compact latent compression.</p>
+          </article>
+        </div>
+
+        <div class="results-layout">
+          <figure class="figure-panel wide">
+            <a href="comparison/results/final_comparison/visuals/pca_vs_ae_metric_panels.png">
+              <img
+                src="comparison/results/final_comparison/visuals/pca_vs_ae_metric_panels.png"
+                alt="Line charts comparing PCA and autoencoder PSNR and SSIM on MNIST and Fashion-MNIST."
+                decoding="async"
+              >
+            </a>
+            <figcaption>PCA vs AE across PSNR and SSIM. AE rises quickly, while PCA continues improving as latent size grows.</figcaption>
+          </figure>
+
+          <div class="finding-table-wrap">
+            <table class="finding-table">
+              <caption>Largest PSNR gaps</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Dataset</th>
+                  <th scope="col">Best AE advantage</th>
+                  <th scope="col">PCA advantage at 64</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">MNIST</th>
+                  <td>+2.80 dB at latent 16</td>
+                  <td>+1.71 dB over AE</td>
+                </tr>
+                <tr>
+                  <th scope="row">Fashion-MNIST</th>
+                  <td>+2.18 dB at latent 8</td>
+                  <td>+1.49 dB over AE</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section comparison-section" aria-labelledby="comparison-title">
+        <div class="section-kicker">Direct comparison</div>
+        <h2 id="comparison-title">The sign flips at the largest latent size.</h2>
+        <div class="comparison-grid">
+          <figure class="figure-panel">
+            <a href="comparison/results/final_comparison/visuals/ae_minus_pca_psnr.png">
+              <img
+                src="comparison/results/final_comparison/visuals/ae_minus_pca_psnr.png"
+                alt="Bar charts showing AE minus PCA PSNR deltas on MNIST and Fashion-MNIST."
+                decoding="async"
+              >
+            </a>
+            <figcaption>Positive bars favor AE. The negative bar at latent 64 marks the PCA win.</figcaption>
+          </figure>
+          <figure class="figure-panel">
+            <a href="comparison/results/final_comparison/visuals/psnr_delta_heatmap.png">
+              <img
+                src="comparison/results/final_comparison/visuals/psnr_delta_heatmap.png"
+                alt="Heatmap of AE advantage over PCA in PSNR by dataset and latent dimension."
+                decoding="async"
+              >
+            </a>
+            <figcaption>The strongest nonlinear gain is MNIST at latent 16; Fashion-MNIST peaks at latent 8.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section efficiency-section" aria-labelledby="efficiency-title">
+        <div class="section-kicker">Tradeoff</div>
+        <h2 id="efficiency-title">Reconstruction quality is only half the story.</h2>
+        <div class="two-column align-start">
+          <div>
+            <p>
+              Autoencoders improved reconstruction quality when the bottleneck was tight, but they paid for that flexibility with hundreds of thousands of trainable parameters. PCA needed no neural training and remained extremely competitive as the latent dimension increased.
+            </p>
+            <ul class="clean-list">
+              <li>Use AE when low-dimensional reconstruction quality matters most.</li>
+              <li>Use PCA when simplicity, speed, interpretability, and parameter efficiency matter.</li>
+              <li>Do not treat nonlinear methods as automatic winners; the dataset and bottleneck size decide the result.</li>
+            </ul>
+          </div>
+          <figure class="figure-panel">
+            <a href="comparison/results/final_comparison/visuals/parameter_efficiency_overlay.png">
+              <img
+                src="comparison/results/final_comparison/visuals/parameter_efficiency_overlay.png"
+                alt="Overlay showing reconstruction quality versus parameter cost for PCA and autoencoders."
+                decoding="async"
+              >
+            </a>
+            <figcaption>PCA occupies the lightweight side of the tradeoff while AE buys quality with model size.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="visuals" class="section visuals-section" aria-labelledby="visuals-title">
+        <div class="section-kicker">Reconstructions</div>
+        <h2 id="visuals-title">The visual story matches the metrics.</h2>
+        <p class="section-lead">
+          The same-sample grids make the tradeoff visible: AE restores smoother shapes at tight bottlenecks, while PCA becomes sharper again at larger latent sizes.
+        </p>
+        <div class="visual-grid">
+          <figure class="figure-panel tall">
+            <a href="comparison/results/final_comparison/visuals/sample_comparisons/fashion_side_by_side_summary.png">
+              <img
+                src="comparison/results/final_comparison/visuals/sample_comparisons/fashion_side_by_side_summary.png"
+                alt="Fashion-MNIST side-by-side summary comparing originals, PCA reconstructions, and autoencoder reconstructions."
+                decoding="async"
+              >
+            </a>
+            <figcaption>Fashion-MNIST is the harder visual benchmark and shows the most intuitive reconstruction differences.</figcaption>
+          </figure>
+          <figure class="figure-panel">
+            <a href="autoencoders/results/mnist/latent_16.png">
+              <img
+                src="autoencoders/results/mnist/latent_16.png"
+                alt="MNIST latent 16 autoencoder reconstruction grid."
+                decoding="async"
+              >
+            </a>
+            <figcaption>MNIST latent 16 shows the autoencoder preserving digit structure under a compact code.</figcaption>
+          </figure>
+          <figure class="figure-panel">
+            <a href="comparison/results/final_comparison/visuals/sample_comparisons/fashion_pca_vs_ae_latent_064.png">
+              <img
+                src="comparison/results/final_comparison/visuals/sample_comparisons/fashion_pca_vs_ae_latent_064.png"
+                alt="Fashion-MNIST latent 64 reconstruction grid comparing PCA and autoencoder outputs."
+                decoding="async"
+              >
+            </a>
+            <figcaption>At latent 64, PCA catches up and wins the measured reconstruction quality.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="diffusion" class="section diffusion-section" aria-labelledby="diffusion-title">
+        <div class="section-kicker">Bonus extension</div>
+        <h2 id="diffusion-title">Diffusion belongs beside the comparison, not inside the ranking.</h2>
+        <div class="two-column align-start">
+          <div>
+            <p>
+              PCA and AE reconstruct after compression into a fixed latent code. Diffusion instead learns to reverse progressive noise corruption. That makes it useful for image restoration and generation, but it is not answering the same winner-or-loser compression question.
+            </p>
+            <dl class="metric-list">
+              <div>
+                <dt>Denoising PSNR</dt>
+                <dd>18.931 dB</dd>
+              </div>
+              <div>
+                <dt>Denoising SSIM</dt>
+                <dd>0.5365</dd>
+              </div>
+              <div>
+                <dt>Denoising MSE</dt>
+                <dd>0.012791</dd>
+              </div>
+            </dl>
+          </div>
+          <figure class="figure-panel">
+            <a href="comparison/results/final_comparison/diffusion_bridge/diffusion_psnr_context.png">
+              <img
+                src="comparison/results/final_comparison/diffusion_bridge/diffusion_psnr_context.png"
+                alt="Chart placing diffusion denoising PSNR beside PCA and AE reconstruction PSNR context."
+                decoding="async"
+              >
+            </a>
+            <figcaption>The dashed diffusion line is a denoising x0 estimate, not a compressed-latent reconstruction.</figcaption>
+          </figure>
+        </div>
+        <figure class="figure-panel full-width">
+          <a href="comparison/results/final_comparison/diffusion_bridge/diffusion_denoising_preview.png">
+            <img
+              src="comparison/results/final_comparison/diffusion_bridge/diffusion_denoising_preview.png"
+              alt="Diffusion preview showing original MNIST digits, noisy versions, and predicted clean images."
+              decoding="async"
+            >
+          </a>
+          <figcaption>Diffusion preview: original input, noisy sample, and predicted clean image.</figcaption>
+        </figure>
+        <div class="generation-block">
+          <h3>Native diffusion generations</h3>
+          <p>
+            These are the saved diffusion generations, with MNIST displayed at 320 x 320 to match the native CIFAR-10 grid.
+          </p>
+          <div class="generation-grid">
+            <figure class="figure-panel">
+              <a href="diffusion/results/mnist_samples_native.png">
+                <img
+                  class="mnist-native-sample"
+                  src="diffusion/results/mnist_samples_native.png"
+                  alt="Native-resolution MNIST diffusion sample grid."
+                  width="320"
+                  height="320"
+                  decoding="async"
+                >
+              </a>
+              <figcaption>MNIST generated samples from the native diffusion output.</figcaption>
+            </figure>
+            <figure class="figure-panel">
+              <a href="diffusion/results/cifar10_samples_native.png">
+                <img
+                  src="diffusion/results/cifar10_samples_native.png"
+                  alt="Native-resolution CIFAR-10 diffusion sample grid."
+                  width="320"
+                  height="320"
+                  decoding="async"
+                >
+              </a>
+              <figcaption>CIFAR-10 generated samples from the native diffusion output.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="conclusion" class="section conclusion-section" aria-labelledby="conclusion-title">
+        <div class="section-kicker">Final interpretation</div>
+        <h2 id="conclusion-title">The best method depends on the bottleneck and the goal.</h2>
+        <div class="conclusion-grid">
+          <article>
+            <h3>When quality under tight compression matters</h3>
+            <p>Choose the autoencoder. It gives the strongest PSNR gains at low and middle latent sizes on both datasets.</p>
+          </article>
+          <article>
+            <h3>When efficiency and simplicity matter</h3>
+            <p>Choose PCA. It is dramatically smaller, does not require gradient training, and wins again at latent size 64.</p>
+          </article>
+          <article>
+            <h3>When denoising or generation is the goal</h3>
+            <p>Diffusion is the relevant extension, but it should be evaluated as restoration or generation rather than dimensionality reduction.</p>
+          </article>
+        </div>
+        <div class="project-links" aria-label="Project resources">
+          <a href="472%20Final%20Presentation.pdf">Open presentation PDF</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Built from the final comparison artifacts in this repository.</p>
+      <a href="#top">Back to top</a>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
