@@ -13,3 +13,4 @@ deliverables/
 .ipynb_checkpoints/
 *.pt
 *.pth
+comparison/checkpoints/
