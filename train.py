@@ -105,7 +105,7 @@ class ExperimentConfig:
     lr: float = 1e-3
     seed: int = 42
     data_dir: Path = Path("./data")
-    output_dir: Path = Path("./outputs")
+    output_dir: Path = Path("./runs")
     run_name: str | None = None
     num_workers: int = 0
     download: bool = False
@@ -442,6 +442,19 @@ def resolve_selected_datasets(args: argparse.Namespace) -> list[str]:
     return [normalize_dataset_name(args.dataset)]
 
 
+def resolve_output_dir(args: argparse.Namespace) -> Path:
+    requested = Path(args.output_dir)
+    if requested != ExperimentConfig.output_dir:
+        return requested
+
+    selected_models = resolve_selected_models(args)
+    if len(selected_models) == 1:
+        if selected_models[0] == "diffusion":
+            return Path("diffusion/outputs")
+        return Path("autoencoders/outputs")
+    return requested
+
+
 def build_base_config(args: argparse.Namespace) -> ExperimentConfig:
     return ExperimentConfig(
         model=args.model,
@@ -457,7 +470,7 @@ def build_base_config(args: argparse.Namespace) -> ExperimentConfig:
         lr=args.lr,
         seed=args.seed,
         data_dir=args.data_dir,
-        output_dir=args.output_dir,
+        output_dir=resolve_output_dir(args),
         run_name=args.run_name,
         num_workers=args.num_workers,
         download=args.download,

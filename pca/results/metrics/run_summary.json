@@ -1,0 +1,16 @@
+{
+  "dataset": "MNIST (OpenML mnist_784)",
+  "image_shape": [
+    28,
+    28
+  ],
+  "train_size": 10000,
+  "test_size": 2000,
+  "components": [
+    16,
+    32,
+    64,
+    128
+  ],
+  "metrics_csv": "outputs/metrics/pca_metrics.csv"
+}

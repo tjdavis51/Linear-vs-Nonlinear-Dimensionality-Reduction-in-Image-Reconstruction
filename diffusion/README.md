@@ -13,6 +13,6 @@ This package contains the extra-credit diffusion implementation:
 Use `train.py` as the CLI entry point:
 
 ```bash
-python train.py --config configs/diffusion/mnist.yaml
-python train.py --config configs/diffusion/cifar10.yaml
+python train.py --config diffusion/configs/mnist.yaml
+python train.py --config diffusion/configs/cifar10.yaml
 ```

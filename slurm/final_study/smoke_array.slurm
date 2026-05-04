@@ -62,7 +62,7 @@ final_study_cd_repo
 
 COMMAND=(
   "${PYTHON_BIN}" train.py
-  --config "configs/diffusion/smoke/${DATASET}.yaml"
+  --config "diffusion/configs/smoke/${DATASET}.yaml"
   --seed "${SMOKE_SEED}"
   --run-name "${RUN_NAME}"
   --data-dir "${DATA_DIR}"

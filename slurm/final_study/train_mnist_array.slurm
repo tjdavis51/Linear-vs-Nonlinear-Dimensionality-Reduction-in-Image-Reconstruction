@@ -62,7 +62,7 @@ final_study_cd_repo
 
 COMMAND=(
   "${PYTHON_BIN}" train.py
-  --config "configs/diffusion/mnist.yaml"
+  --config "diffusion/configs/mnist.yaml"
   --seed "${SEED}"
   --run-name "${RUN_NAME}"
   --data-dir "${DATA_DIR}"

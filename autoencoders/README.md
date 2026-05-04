@@ -18,3 +18,15 @@ python train.py --model ae --dataset mnist --latent-dim 16
 python train.py --model dae --dataset mnist --latent-dim 16 --dae-noise-level 0.2
 python train.py --model vae --dataset mnist --latent-dim 16
 ```
+
+Regenerate the committed reconstruction figures with:
+
+```bash
+python autoencoders/scripts/regenerate_autoencoder_images.py --dataset both --latent-dims 2 8 16 32 64 --epochs 10
+```
+
+Saved report-ready artifacts live under:
+
+```text
+autoencoders/results/
+```
