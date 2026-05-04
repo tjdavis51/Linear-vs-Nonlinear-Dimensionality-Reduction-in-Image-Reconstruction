@@ -1,0 +1,30 @@
+{
+  "datasets": [
+    "mnist",
+    "fashion"
+  ],
+  "methods": [
+    "pca",
+    "ae",
+    "dae",
+    "vae"
+  ],
+  "latent_dims": [
+    8,
+    16,
+    32,
+    64
+  ],
+  "train_limit": 10000,
+  "test_limit": 2000,
+  "epochs": 5,
+  "batch_size": 256,
+  "lr": 0.001,
+  "num_workers": 0,
+  "seed": 42,
+  "noise_level": 0.2,
+  "output_dir": "comparison/results",
+  "data_dir": "data",
+  "device": "auto",
+  "download": true
+}

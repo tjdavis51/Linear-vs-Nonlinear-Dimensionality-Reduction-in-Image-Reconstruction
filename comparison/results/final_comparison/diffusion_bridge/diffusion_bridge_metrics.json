@@ -1,0 +1,18 @@
+{
+  "dataset": "mnist",
+  "task": "denoising_reconstruction_estimate",
+  "train_subset": 2048,
+  "test_subset": 512,
+  "epochs": 1,
+  "timesteps": 100,
+  "base_channels": 32,
+  "num_res_blocks": 1,
+  "device": "mps",
+  "train_loss": 0.4705388080328703,
+  "val_noise_mse": 0.2260688878595829,
+  "mse": 0.012791296117939055,
+  "psnr": 18.930854470499447,
+  "ssim": 0.5365292429924011,
+  "elapsed_seconds": 35.35634316600044,
+  "note": "Diffusion score is a denoising-based x0 reconstruction estimate, not a latent compression reconstruction metric."
+}
