@@ -37,7 +37,7 @@
           </p>
           <div class="hero-actions" aria-label="Primary links">
             <a class="action primary" href="#results">View findings</a>
-            <a class="action secondary" href="472%20Final%20Presentation.pdf">Open final deck</a>
+            <a class="action secondary" href="assets/472-final-presentation.pdf">Open final deck</a>
           </div>
         </div>
       </section>
@@ -118,9 +118,9 @@
 
         <div class="results-layout">
           <figure class="figure-panel wide">
-            <a href="comparison/results/final_comparison/visuals/pca_vs_ae_metric_panels.png">
+            <a href="assets/pca-vs-ae-metric-panels.png">
               <img
-                src="comparison/results/final_comparison/visuals/pca_vs_ae_metric_panels.png"
+                src="assets/pca-vs-ae-metric-panels.png"
                 alt="Line charts comparing PCA and autoencoder PSNR and SSIM on MNIST and Fashion-MNIST."
                 decoding="async"
               >
@@ -160,9 +160,9 @@
         <h2 id="comparison-title">The sign flips at the largest latent size.</h2>
         <div class="comparison-grid">
           <figure class="figure-panel">
-            <a href="comparison/results/final_comparison/visuals/ae_minus_pca_psnr.png">
+            <a href="assets/ae-minus-pca-psnr.png">
               <img
-                src="comparison/results/final_comparison/visuals/ae_minus_pca_psnr.png"
+                src="assets/ae-minus-pca-psnr.png"
                 alt="Bar charts showing AE minus PCA PSNR deltas on MNIST and Fashion-MNIST."
                 decoding="async"
               >
@@ -170,9 +170,9 @@
             <figcaption>Positive bars favor AE. The negative bar at latent 64 marks the PCA win.</figcaption>
           </figure>
           <figure class="figure-panel">
-            <a href="comparison/results/final_comparison/visuals/psnr_delta_heatmap.png">
+            <a href="assets/psnr-delta-heatmap.png">
               <img
-                src="comparison/results/final_comparison/visuals/psnr_delta_heatmap.png"
+                src="assets/psnr-delta-heatmap.png"
                 alt="Heatmap of AE advantage over PCA in PSNR by dataset and latent dimension."
                 decoding="async"
               >
@@ -197,9 +197,9 @@
             </ul>
           </div>
           <figure class="figure-panel">
-            <a href="comparison/results/final_comparison/visuals/parameter_efficiency_overlay.png">
+            <a href="assets/parameter-efficiency-overlay.png">
               <img
-                src="comparison/results/final_comparison/visuals/parameter_efficiency_overlay.png"
+                src="assets/parameter-efficiency-overlay.png"
                 alt="Overlay showing reconstruction quality versus parameter cost for PCA and autoencoders."
                 decoding="async"
               >
@@ -217,9 +217,9 @@
         </p>
         <div class="visual-grid">
           <figure class="figure-panel tall">
-            <a href="comparison/results/final_comparison/visuals/sample_comparisons/fashion_side_by_side_summary.png">
+            <a href="assets/fashion-side-by-side-summary.png">
               <img
-                src="comparison/results/final_comparison/visuals/sample_comparisons/fashion_side_by_side_summary.png"
+                src="assets/fashion-side-by-side-summary.png"
                 alt="Fashion-MNIST side-by-side summary comparing originals, PCA reconstructions, and autoencoder reconstructions."
                 decoding="async"
               >
@@ -227,9 +227,9 @@
             <figcaption>Fashion-MNIST is the harder visual benchmark and shows the most intuitive reconstruction differences.</figcaption>
           </figure>
           <figure class="figure-panel">
-            <a href="autoencoders/results/mnist/latent_16.png">
+            <a href="assets/mnist-ae-latent-16.png">
               <img
-                src="autoencoders/results/mnist/latent_16.png"
+                src="assets/mnist-ae-latent-16.png"
                 alt="MNIST latent 16 autoencoder reconstruction grid."
                 decoding="async"
               >
@@ -237,9 +237,9 @@
             <figcaption>MNIST latent 16 shows the autoencoder preserving digit structure under a compact code.</figcaption>
           </figure>
           <figure class="figure-panel">
-            <a href="comparison/results/final_comparison/visuals/sample_comparisons/fashion_pca_vs_ae_latent_064.png">
+            <a href="assets/fashion-pca-vs-ae-latent-64.png">
               <img
-                src="comparison/results/final_comparison/visuals/sample_comparisons/fashion_pca_vs_ae_latent_064.png"
+                src="assets/fashion-pca-vs-ae-latent-64.png"
                 alt="Fashion-MNIST latent 64 reconstruction grid comparing PCA and autoencoder outputs."
                 decoding="async"
               >
@@ -273,9 +273,9 @@
             </dl>
           </div>
           <figure class="figure-panel">
-            <a href="comparison/results/final_comparison/diffusion_bridge/diffusion_psnr_context.png">
+            <a href="assets/diffusion-psnr-context.png">
               <img
-                src="comparison/results/final_comparison/diffusion_bridge/diffusion_psnr_context.png"
+                src="assets/diffusion-psnr-context.png"
                 alt="Chart placing diffusion denoising PSNR beside PCA and AE reconstruction PSNR context."
                 decoding="async"
               >
@@ -284,9 +284,9 @@
           </figure>
         </div>
         <figure class="figure-panel full-width">
-          <a href="comparison/results/final_comparison/diffusion_bridge/diffusion_denoising_preview.png">
+          <a href="assets/diffusion-denoising-preview.png">
             <img
-              src="comparison/results/final_comparison/diffusion_bridge/diffusion_denoising_preview.png"
+              src="assets/diffusion-denoising-preview.png"
               alt="Diffusion preview showing original MNIST digits, noisy versions, and predicted clean images."
               decoding="async"
             >
@@ -300,10 +300,10 @@
           </p>
           <div class="generation-grid">
             <figure class="figure-panel">
-              <a href="diffusion/results/mnist_samples_native.png">
+              <a href="assets/mnist-samples-native.png">
                 <img
                   class="mnist-native-sample"
-                  src="diffusion/results/mnist_samples_native.png"
+                  src="assets/mnist-samples-native.png"
                   alt="Native-resolution MNIST diffusion sample grid."
                   width="320"
                   height="320"
@@ -313,9 +313,9 @@
               <figcaption>MNIST generated samples from the native diffusion output.</figcaption>
             </figure>
             <figure class="figure-panel">
-              <a href="diffusion/results/cifar10_samples_native.png">
+              <a href="assets/cifar10-samples-native.png">
                 <img
-                  src="diffusion/results/cifar10_samples_native.png"
+                  src="assets/cifar10-samples-native.png"
                   alt="Native-resolution CIFAR-10 diffusion sample grid."
                   width="320"
                   height="320"
@@ -346,7 +346,7 @@
           </article>
         </div>
         <div class="project-links" aria-label="Project resources">
-          <a href="472%20Final%20Presentation.pdf">Open presentation PDF</a>
+          <a href="assets/472-final-presentation.pdf">Open presentation PDF</a>
         </div>
       </section>
     </main>

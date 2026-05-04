@@ -149,7 +149,7 @@ p {
 .hero-media {
   position: absolute;
   inset: 0;
-  background-image: url("comparison/results/final_comparison/visuals/pca_vs_ae_metric_panels.png");
+  background-image: url("assets/pca-vs-ae-metric-panels.png");
   background-position: center;
   background-size: cover;
   filter: saturate(0.82);
