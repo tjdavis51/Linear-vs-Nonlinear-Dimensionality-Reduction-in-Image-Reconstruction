@@ -1,5 +1,15 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
+.DS_Store
+.cache/
 
+data/
 outputs/
+runs/
+checkpoints/
+deliverables/
+.ipynb_checkpoints/
+*.pt
+*.pth

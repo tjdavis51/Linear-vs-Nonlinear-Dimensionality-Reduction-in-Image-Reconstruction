@@ -1,4 +1,9 @@
-numpy
-scikit-learn
 matplotlib
-pandas
+numpy
+Pillow
+PyYAML
+scikit-learn
+torch
+torchmetrics
+torchvision
+pytest
