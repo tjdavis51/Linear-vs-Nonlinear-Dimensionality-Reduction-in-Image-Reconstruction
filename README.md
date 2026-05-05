@@ -126,9 +126,12 @@ The extra-credit diffusion work lives under `diffusion/`.
 Run:
 
 ```bash
-python train.py --config diffusion/configs/mnist.yaml
-python train.py --config diffusion/configs/cifar10.yaml
+python train.py --config diffusion/configs/mnist.yaml --num-workers 0
+python train.py --config diffusion/configs/cifar10.yaml --num-workers 0
 ```
+
+`--num-workers 0` is the safest laptop/default setting. Larger worker counts may
+need environment-specific shared-memory support.
 
 Committed artifacts:
 

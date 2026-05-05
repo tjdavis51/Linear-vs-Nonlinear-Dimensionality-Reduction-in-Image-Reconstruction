@@ -3,17 +3,24 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 PROJECT_CACHE_DIR = Path(".cache")
 PROJECT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", str((PROJECT_CACHE_DIR / "matplotlib").resolve()))
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.datasets import fetch_openml
 from sklearn.decomposition import PCA
+from torch.utils.data import DataLoader
+
+from autoencoders.data import build_autoencoder_dataset
 
 
 DEFAULT_COMPONENTS = [16, 32, 64, 128]
@@ -57,6 +64,18 @@ def parse_args() -> argparse.Namespace:
         default=Path("pca/results"),
         help="Directory for metrics, plots, and reconstructed image grids.",
     )
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=Path("data"),
+        help="Directory containing local MNIST files.",
+    )
+    parser.add_argument(
+        "--download",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Allow torchvision to download MNIST if the local files are missing.",
+    )
     return parser.parse_args()
 
 
@@ -72,18 +91,23 @@ def ensure_output_dirs(output_dir: Path) -> dict[str, Path]:
     return directories
 
 
-def load_mnist() -> tuple[np.ndarray, np.ndarray]:
-    data_home = PROJECT_CACHE_DIR / "scikit_learn_data"
-    data_home.mkdir(parents=True, exist_ok=True)
-    X, y = fetch_openml(
-        "mnist_784",
-        version=1,
-        return_X_y=True,
-        as_frame=False,
-        data_home=data_home,
+def load_mnist(*, data_dir: Path, download: bool) -> tuple[np.ndarray, np.ndarray]:
+    dataset = build_autoencoder_dataset(
+        "mnist",
+        root=data_dir,
+        train=True,
+        download=download,
     )
-    X = X.astype(np.float32)
-    y = y.astype(np.int16)
+    loader = DataLoader(dataset, batch_size=2048, shuffle=False)
+    image_batches: list[np.ndarray] = []
+    label_batches: list[np.ndarray] = []
+
+    for images, labels in loader:
+        image_batches.append(images.view(images.size(0), -1).numpy())
+        label_batches.append(labels.numpy())
+
+    X = np.concatenate(image_batches, axis=0).astype(np.float32) * PIXEL_MAX
+    y = np.concatenate(label_batches, axis=0).astype(np.int16)
     return X, y
 
 
@@ -204,7 +228,7 @@ def save_reconstruction_grid(
 def run_experiment(args: argparse.Namespace) -> None:
     directories = ensure_output_dirs(args.output_dir)
 
-    X, y = load_mnist()
+    X, y = load_mnist(data_dir=args.data_dir, download=args.download)
     X_train, X_test, y_test = split_dataset(
         X=X,
         y=y,
@@ -221,12 +245,9 @@ def run_experiment(args: argparse.Namespace) -> None:
             svd_solver="randomized",
             random_state=args.random_seed,
         )
-        transformed = pca.fit_transform(X_train)
-
+        pca.fit(X_train)
         reconstructed = pca.inverse_transform(pca.transform(X_test))
         reconstructed = np.clip(reconstructed, 0.0, PIXEL_MAX)
-        
-        _ = transformed
 
         mse = mean_squared_error(X_test, reconstructed)
         rmse = float(np.sqrt(mse))
@@ -261,7 +282,9 @@ def run_experiment(args: argparse.Namespace) -> None:
     metrics_df.to_csv(metrics_csv_path, index=False)
 
     summary = {
-        "dataset": "MNIST (OpenML mnist_784)",
+        "dataset": "MNIST",
+        "data_dir": str(args.data_dir),
+        "download_enabled": args.download,
         "image_shape": [IMAGE_HEIGHT, IMAGE_WIDTH],
         "train_size": args.train_size,
         "test_size": args.test_size,
