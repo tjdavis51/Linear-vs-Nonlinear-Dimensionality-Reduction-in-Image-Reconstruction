@@ -34,12 +34,14 @@ ROOT = Path(__file__).resolve().parent
 FINAL_COMPARISON_DIR = ROOT / "results" / "final_comparison"
 VISUAL_DIR = FINAL_COMPARISON_DIR / "visuals"
 SAMPLE_DIR = VISUAL_DIR / "sample_comparisons"
+PREPROCESS_DIR = VISUAL_DIR / "preprocessing"
 CHECKPOINT_DIR = ROOT / "checkpoints"
 CORE_METRICS_PATH = FINAL_COMPARISON_DIR / "core_metrics.csv"
 JOINED_METRICS_PATH = FINAL_COMPARISON_DIR / "pca_vs_ae_comparison.csv"
 
 LATENT_DIMS_FOR_SAMPLES = (16, 64)
 SAMPLE_COUNT = 8
+PREPROCESS_SAMPLE_COUNT = 5
 SEED = 42
 
 
@@ -66,6 +68,7 @@ def resolve_device() -> torch.device:
 def ensure_dirs() -> None:
     VISUAL_DIR.mkdir(parents=True, exist_ok=True)
     SAMPLE_DIR.mkdir(parents=True, exist_ok=True)
+    PREPROCESS_DIR.mkdir(parents=True, exist_ok=True)
     CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -281,7 +284,7 @@ def create_sample_grid(
     with torch.no_grad():
         ae_tensor = ae_model(original_batch.to(device)).detach().cpu().clamp(0.0, 1.0)
 
-    fig, axes = plt.subplots(3, SAMPLE_COUNT, figsize=(1.7 * SAMPLE_COUNT, 5.1))
+    fig, axes = plt.subplots(3, SAMPLE_COUNT, figsize=(1.8 * SAMPLE_COUNT, 5.4))
     row_labels = ("Original", "PCA", "AE")
     row_tensors = (original_batch, pca_tensor, ae_tensor)
 
@@ -291,7 +294,9 @@ def create_sample_grid(
                 tensor[col_idx, 0].numpy(), cmap="gray", vmin=0.0, vmax=1.0
             )
             axes[row_idx, col_idx].axis("off")
-        axes[row_idx, 0].set_ylabel(label, rotation=0, labelpad=32, va="center")
+            if row_idx == 0:
+                axes[row_idx, col_idx].set_title(f"Sample {col_idx + 1}", fontsize=9)
+        axes[row_idx, 0].set_ylabel(label, rotation=0, labelpad=36, va="center", fontsize=10)
 
     fig.suptitle(
         f"{dataset_label}: Original vs PCA vs AE (latent dim = {latent_dim})",
@@ -335,7 +340,8 @@ def create_fashion_summary_strip(device: torch.device) -> None:
     for col_idx in range(len(sample_indices)):
         axes[0, col_idx].imshow(originals[col_idx, 0].numpy(), cmap="gray", vmin=0.0, vmax=1.0)
         axes[0, col_idx].axis("off")
-    axes[0, 0].set_ylabel("Orig", rotation=0, labelpad=20, va="center")
+        axes[0, col_idx].set_title(f"Sample {col_idx + 1}", fontsize=9)
+    axes[0, 0].set_ylabel("Original", rotation=0, labelpad=28, va="center", fontsize=9)
 
     for offset, latent_dim in enumerate(LATENT_DIMS_FOR_SAMPLES):
         pca = PCA(n_components=latent_dim, svd_solver="randomized", random_state=SEED)
@@ -360,13 +366,80 @@ def create_fashion_summary_strip(device: torch.device) -> None:
             )
             axes[ae_row, col_idx].axis("off")
 
-        axes[pca_row, 0].set_ylabel(f"PCA {latent_dim}", rotation=0, labelpad=26, va="center")
-        axes[ae_row, 0].set_ylabel(f"AE {latent_dim}", rotation=0, labelpad=26, va="center")
+        axes[pca_row, 0].set_ylabel(
+            f"PCA z={latent_dim}", rotation=0, labelpad=30, va="center", fontsize=9
+        )
+        axes[ae_row, 0].set_ylabel(
+            f"AE z={latent_dim}", rotation=0, labelpad=30, va="center", fontsize=9
+        )
 
     fig.suptitle(f"{dataset_label}: Side-by-Side Reconstruction Quality", fontsize=14)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     fig.savefig(
         SAMPLE_DIR / "fashion_side_by_side_summary.png",
+        dpi=220,
+        bbox_inches="tight",
+    )
+    plt.close(fig)
+
+
+def create_preprocessing_sample_grids() -> None:
+    datasets = (
+        ("mnist", "MNIST"),
+        ("fashion", "Fashion-MNIST"),
+    )
+
+    fig, axes = plt.subplots(
+        len(datasets),
+        PREPROCESS_SAMPLE_COUNT,
+        figsize=(1.8 * PREPROCESS_SAMPLE_COUNT, 2.6 * len(datasets)),
+        squeeze=False,
+    )
+
+    for row_idx, (dataset_name, dataset_label) in enumerate(datasets):
+        dataset = build_autoencoder_dataset(
+            dataset_name, root=REPO_ROOT / "data", train=False, download=True
+        )
+        for col_idx in range(PREPROCESS_SAMPLE_COUNT):
+            image, label = dataset[col_idx]
+            axes[row_idx, col_idx].imshow(
+                image[0].numpy(), cmap="gray", vmin=0.0, vmax=1.0
+            )
+            axes[row_idx, col_idx].axis("off")
+            axes[row_idx, col_idx].set_title(f"Sample {col_idx + 1}", fontsize=9)
+            if row_idx == 0:
+                axes[row_idx, col_idx].text(
+                    0.5,
+                    -0.14,
+                    f"digit {label}",
+                    transform=axes[row_idx, col_idx].transAxes,
+                    ha="center",
+                    va="top",
+                    fontsize=8,
+                )
+            else:
+                axes[row_idx, col_idx].text(
+                    0.5,
+                    -0.14,
+                    f"class {label}",
+                    transform=axes[row_idx, col_idx].transAxes,
+                    ha="center",
+                    va="top",
+                    fontsize=8,
+                )
+
+        axes[row_idx, 0].set_ylabel(
+            f"{dataset_label}\n28x28\nnormalized",
+            rotation=0,
+            labelpad=38,
+            va="center",
+            fontsize=9,
+        )
+
+    fig.suptitle("Datasets After Preprocessing", fontsize=15)
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.savefig(
+        PREPROCESS_DIR / "mnist_fashion_preprocessing_samples.png",
         dpi=220,
         bbox_inches="tight",
     )
@@ -383,6 +456,7 @@ def main() -> None:
     plot_psnr_delta(joined)
     plot_parameter_efficiency(joined)
     plot_winner_heatmap(joined)
+    create_preprocessing_sample_grids()
 
     create_sample_grid("mnist", "MNIST", 16, device)
     create_sample_grid("mnist", "MNIST", 64, device)
